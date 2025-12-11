@@ -5,163 +5,241 @@
 }
 
 :root {
-    --regular-size: 2rem;
-    --large-size: 3rem;
+    --dark-peach: #923E4D;
+    --peach: #b15052;
+    --light-peach: #D06257;
 
-    --header: #b15052;
-    --primary-font: #722b47;
-    --secondary-font: #D06257;
-    --panel-and-button: #923E4D;
-    --background: #34073D;
-    --footer: #531942;
-    --board: #EF745C;
-    --primary-font: #722b47;
+    --dark-purple: #34073D;
+    --purple: #531942;
+    --light-purple: #722b47;
+
+    --regular-size: calc(24px + 1vw);
+    --large-size: calc(32px + 1vw);
+
+    --padding: 10%;
 }
 
 * {
     box-sizing: border-box;
+
     margin: 0;
     padding: 0;
 }
 
 body {
+    background-color: var(--dark-purple);
+
     font-family: "VT323";
     font-size: var(--regular-size);
 
     letter-spacing: .1rem;
     line-height: 1.5;
-
     -webkit-font-smoothing: antialiased;
-}
-
-#game-container {
-    background-color: var(--background);
 
     height: 100vh;
     width: 100vw;
 
     display: grid;
-    grid-template-rows: 100px 1fr 100px;
+    grid-template-rows: 150px 1fr 150px;
 }
 
-#header {
-    background-color: var(--header);
+/**
+ ** Header 
+ **/
+header {
+    background-color: var(--peach);
 
-    color: var(--primary-font);
     font-size: var(--large-size);
-    text-align: center;
-    padding: 25px;
+    font-weight: bolder;
+    color: var(--light-purple);
+
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
 }
 
-#content {
-    display: flex;
-    margin: 0px auto;
-    width: 100vw;
+/**
+ ** Main 
+ **/
+main {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(300px, 30%));
+    justify-content: center;
+}
+
+/* Player Info panels & Edit button */
+.player-info {
+    background-color: var(--dark-peach);
+
+    color: var(--light-peach);
 
     overflow: auto;
-    scrollbar-color: var(--primary-font) var(--header);
-}
 
-.player-info {
-    background-color: var(--panel-and-button);
-    color: var(--secondary-font);
-
-    padding: 50px;
+    /* Same color as --dark-purple, but at 75% opacity */
+    box-shadow: inset 0px 0px 30px 0px rgba(52, 7, 61, 0.75);
 
     display: flex;
     flex-direction: column;
     justify-content: center;
-    gap: 50px;
-
-    box-shadow: inset 0px 0px 30px 0px rgba(52, 7, 61, 0.5);
-}
-
-.name-container,
-.score-container {
-    display: flex;
-    gap: 10px;
     align-items: center;
-    flex-wrap: wrap;
+
+    padding: var(--padding);
+    gap: calc(var(--padding)/2);
 }
 
-.name-output {
-    border-radius: 10em;
+.player-info>.symbol {
+    background: none;
+    fill: var(--dark-purple);
+
+    width: 50%;
+    height: 50%;
+}
+
+.player-info>button.edit {
+    background: none;
+    fill: var(--peach);
+
     border: none;
-    padding: 10px;
-    background-color: var(--footer);
-    font: inherit;
-    color: var(--secondary-font);
+    width: 50px;
+
+    align-self: flex-end;
+    margin: auto 0px 0px;
+}
+
+.player-info>button.edit:active {
+    fill: var(--light-purple);
+}
+
+.player-info>.player_x.announcement,
+.player-info>.player_o.announcement {
+    display: none;
+}
+
+.player-info>.player_x.name>span,
+.player-info>.player_o.name>span {
+    overflow-wrap: anywhere;
+}
+
+/* Gameboard panel */
+.gameboard {
+    background-color: var(--dark-purple);
+    color: var(--peach);
     text-align: center;
-    box-shadow: 0px 0px 10px 0px rgba(52, 7, 61, 0.5);
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    padding: calc(var(--padding)/2);
+    gap: calc(var(--padding)/2);
 }
 
-.name-output::placeholder {
-    color: var(--background);
-    /* opacity: 50%; */
+.gameboard .square-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap: calc(var(--padding)/2);
+    row-gap: calc(var(--padding)/2);
 }
 
-.name-output:active {
+.square-container>.square {
+    background-color: var(--peach);
+
+    color: var(--dark-purple);
+    font-size: var(--large-size);
+
+    border: none;
+
+    width: calc(50px + 3vw);
+    height: calc(50px + 3vw);
+}
+
+.square-container>.square:active {
+    background-color: var(--purple);
+}
+
+dialog {
+    background-color: var(--light-peach);
+
+    color: var(--light-purple);
+    font: inherit;
+    text-align: center;
+
+    padding: var(--padding);
+    margin: auto;
+
+    border: none;
+}
+
+dialog::backdrop {
+    backdrop-filter: blur(5px);
+}
+
+dialog>form {
+    display: flex;
+    flex-direction: column;
+    justify-items: center;
+    align-items: center;
+    gap: 5%;
+}
+
+dialog button {
+    background-color: var(--dark-peach);
+
+    color: var(--light-peach);
+    font: inherit;
+
+    border: none;
+    /* Same color as --dark-purple, but at 75% opacity */
+    box-shadow: 0px 0px 15px 5px rgba(52, 7, 61, 0.75);
+
+    width: 25%;
+    height: 50%;
+}
+
+dialog button:active {
+    background-color: var(--dark-purple);
     outline: none;
 }
 
-button,
-svg {
-    background-color: var(--panel-and-button);
-    color: var(--secondary-font);
-}
-
-button.edit {
-    width: 20px;
-    border: none;
-    fill: var(--secondary-font);
-}
-
-button.edit:active {
-    fill: var(--primary-font);
-}
-
-#board {
-    margin: auto;
-    padding: 50px;
-
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-
-    gap: 10px;
-    row-gap: 10px;
-}
-
-#board>button {
-    border: none;
+.get-name input {
+    background-color: var(--dark-purple);
     font: inherit;
+    color: var(--light-peach);
 
-    height: 100px;
-    width: 100px;
+    border: none;
+    outline: none;
+
+    margin: var(--padding);
+    padding: calc(var(--padding)/2);
 }
 
-#board>button:active {
-    background-color: var(--footer);
+/**
+ ** Footer 
+ **/
+footer {
+    background-color: var(--purple);
+
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
 }
 
-#footer {
-    background-color: var(--footer);
-    text-align: center;
-    justify-items: center;
+footer>button {
+    background-color: var(--dark-peach);
 
-    padding: 25px;
-}
-
-#footer>button {
+    color: var(--light-peach);
     font: inherit;
 
     border: none;
-    border-radius: 10em;
-    box-shadow: 0px 0px 15px 5px rgba(52, 7, 61, 0.5);
+    /* Same color as --dark-purple, but at 75% opacity */
+    box-shadow: 0px 0px 15px 5px rgba(52, 7, 61, 0.75);
 
-    width: 200px;
-    height: 50px;
+    width: 25%;
+    height: 50%;
 }
 
-#footer>button:active {
-    background-color: var(--background);
+footer>button:active {
+    background-color: var(--dark-purple);
 }

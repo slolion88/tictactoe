@@ -1,7 +1,7 @@
 /** 
  ** TIC-TAC-TOE PROGRAM
  ** 
- ** Tic-Tac-Toe is a game played by two contestants on a 3x3 board of squares. A winner is declared if 3 of the same 
+ ** Tic-Tac-Toe is a game played by two players on a 3x3 board of squares. A winner is declared if 3 of the same 
  ** markers are placed adjacently in either a row, column, or diagonal. A tie occurs when the board has been filled and
  ** no other moves can be made.
 */
@@ -11,7 +11,7 @@
  * Creates a new Player with a name, marker, and score (initially 0). Getter and Setter methods for each, 
  * except score which can only be increased, not set.
 */
-function Player(playerName, playerMarker) {
+const Player = (playerName, playerMarker) => {
     let name = playerName;
     let marker = playerMarker;
     let score = 0;
@@ -25,7 +25,7 @@ function Player(playerName, playerMarker) {
     const increaseScore = function () { ++score };
 
     return { getName, setName, getMarker, getScore, increaseScore }
-}
+};
 
 /** 
  * GameBoard Module
@@ -33,196 +33,311 @@ function Player(playerName, playerMarker) {
  * reset, and check the board for winners.
 */
 const GameBoard = (() => {
-    const BOARD_LENGTH = 3;
-
     const square = (currentRow, currentColumn) => {
-        let symbol = "_";
+        let marker = "";
         const row = currentRow;
         const column = currentColumn;
 
         return {
-            isMarked: () => symbol === "X" || symbol === "O",
-            getSymbol: () => symbol,
-            setSymbol: function (newSymbol) { symbol = newSymbol },
+            isMarked: () => marker === "X" || marker === "O",
+            getMarker: () => marker,
+            setMarker: function (newMarker) { marker = newMarker },
             getRow: () => row,
             getColumn: () => column
         };
     };
 
     // Initialize the board, a 2-D array of squares set to their respective coordinates in the board.
-    const board = [];
-    for (let row = 0; row < BOARD_LENGTH; row++) {
-        // Set the current row to be an array.
-        board[row] = [];
-
-        for (let column = 0; column < BOARD_LENGTH; column++) {
-            board[row].push(square(row, column));
-        }
-    }
-
-    const print = function () {
-        let consoleDisplay = ``;
-        for (let row = 0; row < BOARD_LENGTH; row++) {
-            if (row == 0) {
-                consoleDisplay += `   0   1   2\n`;
-            }
-            for (let column = 0; column < BOARD_LENGTH; column++) {
-                let squareToPrint = board[row][column];
-
-                if (column == 0) {
-                    consoleDisplay += `${row}  ${squareToPrint.getSymbol()} |`;
-                } else if (column == 1) {
-                    consoleDisplay += ` ${squareToPrint.getSymbol()} |`;
-                } else {
-                    consoleDisplay += ` ${squareToPrint.getSymbol()}\n`;
-                }
+    const board = (() => {
+        const array = [];
+        for (let row = 0; row < 3; row++) {
+            array[row] = [];
+            for (let column = 0; column < 3; column++) {
+                array[row].push(square(row, column));
             }
         }
-        console.log(consoleDisplay);
-    };
+        return array;
+    })();
 
-    const update = (marker, input) => {
-        let squareToUpdate = board[input.charAt(0)][input.charAt(1)];
+    const getBoard = () => board;
 
-        if (!squareToUpdate.isMarked()) {
-            squareToUpdate.setSymbol(marker);
-            return true;
+    const placeMarker = (marker, input) => {
+        if (input !== "") {
+            const squareToUpdate = board[input.charAt(0)][input.charAt(1)];
+
+            if (!squareToUpdate.isMarked()) {
+                squareToUpdate.setMarker(marker);
+                return true;
+            }
         }
         return false;
     };
 
-    const reset = function () {
-        for (let row = 0; row < BOARD_LENGTH; row++) {
-            for (let column = 0; column < BOARD_LENGTH; column++) {
-                board[row][column].setSymbol("_");
+    const resetBoard = function () {
+        for (let row = 0; row < board.length; row++) {
+            for (let column = 0; column < board.length; column++) {
+                board[row][column].setMarker("");
             }
         }
     };
-
-    const matchRow = (currentSquare) => {
-        for (let column = 0; column < BOARD_LENGTH; column++) {
-            if (board[currentSquare.getRow()][column].getSymbol() != currentSquare.getSymbol()) {
-                return false;
-            }
-        }
-        return true;
-    };
-
-    const matchColumn = (currentSquare) => {
-        for (let row = 0; row < BOARD_LENGTH; row++) {
-            if (board[row][currentSquare.getColumn()].getSymbol() != currentSquare.getSymbol()) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    const matchDiagonal = (currentSquare) => {
-        const squareMarker = currentSquare.getSymbol();
-        let squareRow = currentSquare.getRow();
-        let squareColumn = currentSquare.getColumn();
-
-        // Marker must match center square for a diagonal match - confirms center for remaining checks
-        if (board[1][1].getSymbol() !== squareMarker) {
-            return false;
-        } else if (squareRow === squareColumn) {
-            // Corner or center square - if corner, match spans top-left to bottom-right
-            let temp = 0;
-            if (squareRow !== 1) {
-                // Corner square, match spans top-left to bottom-right - indices equal each other and flip 00 => 22
-                temp = squareRow === 0 ? 2 : 0;
-                return squareMarker === board[temp][temp].getSymbol();
-            } else {
-                // Center square - direction is uncertain, check both ways starting from top-left square
-                return (
-                    (squareMarker === board[temp][temp].getSymbol() && squareMarker === board[temp + 2][temp + 2].getSymbol())
-                    || (squareMarker === board[temp][temp + 2].getSymbol() && squareMarker === board[temp + 2][temp].getSymbol())
-                );
-            }
-        } else {
-            // Square is corner, match spans bottom-left to top-right - indices flip 02 => 20   
-            return squareMarker === board[squareColumn][squareRow].getSymbol();
-        }
-        return true;
-    }
 
     //Returns the winning marker, "TIE" or false if there's no winner.
     const checkWinner = () => {
         let turns = 0;
 
-        // Returns winning symbol or "TIE", or fale if no winner. Impossible to win before turn 5, or to tie before turn 8
-        for (let row = 0; row < BOARD_LENGTH; row++) {
-            for (let column = 0; column < BOARD_LENGTH; column++) {
+        // Returns winning marker or "TIE", or fale if no winner. Impossible to win before turn 5.
+        for (let row = 0; row < board.length; row++) {
+            for (let column = 0; column < board.length; column++) {
                 let thisSquare = board[row][column];
 
                 if (thisSquare.isMarked() && (++turns >= 5)) {
                     if (matchRow(thisSquare) || matchColumn(thisSquare) || matchDiagonal(thisSquare)) {
-                        return thisSquare.getSymbol()
-                    } else if (turns >= 8) {
+                        return thisSquare.getMarker()
+                    } else if (turns === 9) {
                         return "TIE";
                     }
                 }
             }
         }
+        return false;
     };
 
-    return { print, update, reset, checkWinner };
-})();
+    function matchRow(currentSquare) {
+        for (let column = 0; column < board.length; column++) {
+            if (board[currentSquare.getRow()][column].getMarker() != currentSquare.getMarker()) {
+                return false;
+            }
+        }
+        return true;
+    }
 
-/**
- * GameController Module
- * Controls the flow of the game, starting with getting the contestants, 2 players X and O, playing a round in order
- * to play a game, and announcing the winner.
- */
-const GameController = (() => {
-    const contestants = (() => {
-        const playerX = Player(prompt("Player X, what is your name?"), "X");
-        const playerO = Player(prompt("Player O, what is your name?"), "O");
+    function matchColumn(currentSquare) {
+        for (let row = 0; row < board.length; row++) {
+            if (board[row][currentSquare.getColumn()].getMarker() != currentSquare.getMarker()) {
+                return false;
+            }
+        }
+        return true;
+    }
 
-        let activeContestant = playerX;
-        const getActiveContestant = () => activeContestant;
-        const swapActiveContestant = function () { activeContestant = activeContestant === playerX ? playerO : playerX };
+    function matchDiagonal(currentSquare) {
+        const squareMarker = currentSquare.getMarker();
+        let squareRow = currentSquare.getRow();
+        let squareColumn = currentSquare.getColumn();
 
-        return { playerX, playerO, getActiveContestant, swapActiveContestant };
-    })();
-
-    function announceWinner(winner) {
-        if (winner === "TIE") {
-            console.log("It's a tie!");
+        // Marker must match center square for a diagonal match - confirms center for remaining checks.
+        if (board[1][1].getMarker() !== squareMarker) {
+            return false;
+        } else if (squareRow === squareColumn) {
+            // Corner or center square - if corner, match spans top-left to bottom-right.
+            let temp = 0;
+            if (squareRow !== 1) {
+                // Corner square, match spans top-left to bottom-right - indices equal each other and flip 00 => 22.
+                temp = squareRow === 0 ? 2 : 0;
+                return squareMarker === board[temp][temp].getMarker();
+            } else {
+                // Center square - direction is uncertain, check both ways starting from top-left square.
+                return (
+                    (squareMarker === board[temp][temp].getMarker() && squareMarker === board[temp + 2][temp + 2].getMarker())
+                    || (squareMarker === board[temp][temp + 2].getMarker() && squareMarker === board[temp + 2][temp].getMarker())
+                );
+            }
         } else {
-            console.log(`${winner.getName()} wins the game! Your score is now ${winner.getScore()}.`);
+            // Square is corner, match spans bottom-left to top-right - indices flip 02 => 20.
+            return squareMarker === board[squareColumn][squareRow].getMarker();
         }
     }
 
-    function playRound() {
-        // Get the activeContestant's move and update the board
-        GameBoard.update(
-            contestants.getActiveContestant().getMarker(),
-            prompt(`${contestants.getActiveContestant().getName()}, it's your turn!\nWhere would you like to place your ${contestants.getActiveContestant().getMarker()}?`)
-        );
+    return { getBoard, placeMarker, resetBoard, checkWinner };
+})();
 
-        // Check the board for a winner, if there is one, update the winning player's score and announce the winner
+/**
+ * Game Module
+ * Controls the flow of the game, starting with getting the players, 2 players X and O, playing a round in order
+ * to play a game, and announcing the winner.
+ */
+const Game = (() => {
+    const players = (() => {
+        const playerX = Player("Player X", "X");
+        const playerO = Player("Player O", "O");
+
+        let activePlayer = playerX;
+        const getActivePlayer = () => activePlayer;
+        const swapActivePlayer = function () { activePlayer = activePlayer === playerX ? playerO : playerX };
+
+        return { playerX, playerO, getActivePlayer, swapActivePlayer };
+    })();
+    const getPlayers = () => players;
+
+    // Returns the winning player, false if there is no winner, or null if move was invalid.
+    const playRound = (squareID) => {
+        // Place a marker using the activePlayer's marker and the ID provided. If false returned, marker wasn't placed.
+        const markerPlaced = GameBoard.placeMarker(players.getActivePlayer().getMarker(), squareID);
+        if (!markerPlaced) {
+            return null;
+        }
+
+        // Check the board for a winner, if there is one, update the winning player's score and announce the winner.
         let winner = GameBoard.checkWinner();
         if (winner) {
             if (winner !== "TIE") {
-                winner = winner === "X" ? contestants.playerX : contestants.playerO;
+                winner = winner === "X" ? players.playerX : players.playerO;
                 winner.increaseScore();
             }
-            announceWinner(winner);
         }
         return winner;
     }
 
-    function playGame() {
-        let gameOver = false;
-        while (!gameOver) {
-            GameBoard.print();
-            gameOver = playRound();
-            // Swap the active contestant, even if there's a winner, so that next player or game loser starts next
-            contestants.swapActiveContestant();
+    return { getPlayers, playRound }
+})();
+
+/**
+ * Screen Controller Module
+ * Controls the display of the game on the screen, manipulating the DOM to show moves played, whose turn it is, and the
+ * winner when found.
+ */
+const ScreenController = (function () {
+    const editNameModal_x = document.querySelector(".player_x.get-name");
+    const editNameModal_o = document.querySelector(".player_o.get-name");
+    const editNameButton_x = document.querySelector("button.player_x.edit");
+    const editNameButton_o = document.querySelector("button.player_o.edit");
+    const saveNameButton_x = document.querySelector("button.player_x.save-name");
+    const saveNameButton_o = document.querySelector("button.player_o.save-name");
+
+    const announcementText_x = document.querySelector(".player_x.announcement");
+    const announcementText_o = document.querySelector(".player_o.announcement");
+    const announcementText_gameboard = document.querySelector(".gameboard.announcement");
+
+    const squareBoard = document.querySelector(".square-container");
+    const playButton = document.querySelector("button.play");
+
+    const initializeScreen = (function () {
+        // Add squares to DOM, each w/ ID matching its location - aligns with GameBoard ids.
+        for (let row = 0; row < GameBoard.getBoard().length; row++) {
+            for (let column = 0; column < GameBoard.getBoard().length; column++) {
+                const squareButton = document.createElement("button");
+                squareButton.setAttribute("id", `${row}${column}`);
+                squareButton.className = "square";
+                squareButton.setAttribute("type", "button");
+                squareBoard.appendChild(squareButton);
+            }
+        }
+
+        // Set the announcement text to give instructions below the board but not in player panels.
+        announcementText_gameboard.style.display = "block";
+        announcementText_x.style.display = "none";
+        announcementText_o.style.display = "none";
+    })();
+    initializeScreen;
+
+    const handleListeners = (function () {
+        editNameButton_x.addEventListener("click", function () { editNameModal_x.showModal() });
+
+        editNameButton_o.addEventListener("click", function () { editNameModal_o.showModal() });
+
+        saveNameButton_x.addEventListener("click", function () {
+            let name = document.querySelector("input#player_x-name").value;
+            name = name === "" ? "Player X" : name;
+            Game.getPlayers().playerX.setName(name);
+            document.querySelector(".player_x.name").firstElementChild.textContent = name;
+            editNameModal_x.close();
+        });
+
+        saveNameButton_o.addEventListener("click", function () {
+            let name = document.querySelector("input#player_o-name").value;
+            name = name === "" ? "Player O" : name;
+            Game.getPlayers().playerO.setName(name);
+            document.querySelector(".player_o.name").firstElementChild.textContent = name;
+            editNameModal_o.close();
+        });
+
+        squareBoard.addEventListener("click", function (event) {
+            // If the game hasn't started yet or has ended, don't proceed.
+            if (playButton.textContent === "Reset") {
+                const gameOver = Game.playRound(event.target.id);
+                if (gameOver === null) {
+                    // Move is invalid - update announcement to try again, don't change players or render.
+                    if (Game.getPlayers().getActivePlayer() === Game.getPlayers().playerX) {
+                        announcementText_x.textContent = "Please try again";
+                    } else {
+                        announcementText_o.textContent = "Please try again";
+                    }
+                } else if (!gameOver) {
+                    // Move is valid but no winner found - display move and swap players to continue.
+                    render();
+                    swapPlayerAnnouncement();
+                } else if (gameOver) {
+                    // Move is valid, winner is found - announce winner.
+                    render();
+                    announceWinner(gameOver);
+                }
+            }
+        });
+
+        playButton.addEventListener("click", (event) => {
+            switch (event.target.textContent) {
+                case "Start":
+                    // This will only show when the page is first loaded. PlayerX is always the first player
+                    announcementText_gameboard.style.display = "none";
+                    announcementText_x.style.display = "block";
+                    playButton.textContent = "Reset";
+                    break;
+                case "Reset":
+                    GameBoard.resetBoard();
+                    render();
+                    swapPlayerAnnouncement();
+                    break;
+                case "Play Again?":
+                    // This will only show when a game has completed. 
+                    announcementText_gameboard.style.display = "none";
+                    playButton.textContent = "Reset";
+                    GameBoard.resetBoard();
+                    render();
+                    swapPlayerAnnouncement();
+            }
+        });
+    })();
+    handleListeners;
+
+    function render() {
+        for (let row = 0; row < GameBoard.getBoard().length; row++) {
+            for (let column = 0; column < GameBoard.getBoard().length; column++) {
+                // Find the button associated to this board square and update the marker to match.
+                document.getElementById(`${row}${column}`).textContent = GameBoard.getBoard()[row][column].getMarker();
+            }
         }
     }
 
-    return { playGame }
+    function swapPlayerAnnouncement() {
+        if (Game.getPlayers().getActivePlayer() === Game.getPlayers().playerX) {
+            announcementText_o.textContent = "It's your turn!";
+            announcementText_x.style.display = "none";
+            announcementText_o.style.display = "block";
+        } else {
+            announcementText_x.textContent = "It's your turn!";
+            announcementText_o.style.display = "none";
+            announcementText_x.style.display = "block";
+        }
+        Game.getPlayers().swapActivePlayer();
+    }
+
+    function announceWinner(winningPlayer) {
+        announcementText_x.style.display = "none";
+        announcementText_o.style.display = "none";
+        announcementText_gameboard.style.display = "block";
+
+        if (winningPlayer === "TIE") {
+            announcementText_gameboard.textContent = "It's a Tie!";
+        } else {
+            if (winningPlayer === Game.getPlayers().playerX) {
+                document.querySelector(".player_x.score").textContent = winningPlayer.getScore();
+            } else {
+                document.querySelector(".player_o.score").textContent = winningPlayer.getScore();
+            }
+            announcementText_gameboard.textContent =
+                winningPlayer.getName() + " wins!\nNew score: " + winningPlayer.getScore();
+        }
+        playButton.textContent = "Play Again?";
+    }
 })();
-GameController.playGame();
+ScreenController;
